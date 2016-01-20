@@ -52,18 +52,21 @@ class myssdb_hash(object):
     def size(self, *args, **kwargs):
         return self.__conn.hsize(self.name)
 
+    def __list(self):
+        start_key = ''
+        for i in xrange(0, self.size(), 1000):
+            tmp = self.__conn.hscan(self.name, start_key, '', limit=1000)
+            start_key = tmp.keys()[-1]
+            for value in tmp.values():
+                yield value
+
+    def get_values(self):
+        return self.__list()
+
 
 if __name__ == '__main__':
-    hash_queue = myssdb_hash('test', host='web12', port=54321)
-    print hash_queue.size()
-    # _id is key!!!
-    data1 = {'_id': '123', 'name': 'LVV'}
-    data2 = {'_id': '123', 'name': 'BBD'}
-    hash_queue.put(data1)
-    print hash_queue.size()
-    hash_queue.put(data2)
-    print hash_queue.size()
-    print hash_queue.get()
-    print hash_queue.size()
-    print hash_queue.get()
-    print hash_queue.size()
+    hash_queue = myssdb_hash('wei_bo_shu_ju', host='web12', port=54321)
+    i = 0
+    for value in hash_queue.get_values():
+        i += 1
+        print i, value
