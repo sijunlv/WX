@@ -58,7 +58,7 @@ class FieldBase(object):
                 'retain1': self.retain1,
                 'retain2': self.retain2,
                 'uptime': int(time.time()),
-                'do_time': time.strftime('%Y-%m-%d', time.localtime(float(time.time())))
+                'do_time': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(float(time.time())))
             }
             privatedata = self.makemap()
             if isinstance(privatedata, dict):
