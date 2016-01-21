@@ -10,7 +10,7 @@ from ssdb import SSDB
 from ssdb.connection import BlockingConnectionPool
 import json
 import uuid
-
+import time
 
 class myssdb_hash(object):
 
@@ -34,7 +34,9 @@ class myssdb_hash(object):
                 key = str(uuid.uuid1())
         else:
             key = str(uuid.uuid1())
-        return self.__conn.hset(self.name, key, value if isinstance(value, basestring) else json.dumps(value))
+        status = self.__conn.hset(self.name, key, value if isinstance(value, basestring) else json.dumps(value))
+        self.__conn.hincr('counter_' + self.name, time.strftime('%Y-%m-%d', time.localtime(float(time.time()))))
+        return status
 
     # get a data
     def get(self, **kwargs):
@@ -65,8 +67,11 @@ class myssdb_hash(object):
 
 
 if __name__ == '__main__':
-    hash_queue = myssdb_hash('wei_bo_shu_ju', host='web12', port=54321)
-    i = 0
+    hash_queue = myssdb_hash('test', host='web12', port=54321)
+    # 插入数据，并使计数器自增（用于统计每日数据流量）
+    print hash_queue.put({'_id': 'id1', 'name': 'LVV'})
+    print hash_queue.put({'_id': 'id1', 'name': 'BBD'})
+    print hash_queue.put({'_id': 'id2', 'company': u'成都数联铭品科技有限公司'})
+    # 遍历Hash表
     for value in hash_queue.get_values():
-        i += 1
-        print i, value
+        print value
