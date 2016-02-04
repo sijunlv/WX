@@ -9,6 +9,7 @@ sys.setdefaultencoding('utf-8')
 from ssdb import SSDB
 from ssdb.connection import BlockingConnectionPool
 import json
+import time
 
 
 class myssdb(object):
@@ -21,10 +22,14 @@ class myssdb(object):
 
     # 队尾放入一条数据
     def put(self, data, **kwargs):
+        length = 0
         if isinstance(data, dict) or isinstance(data, list):
-            self.ssdb.qpush_back(self.table, json.dumps(data))
+            length = self.ssdb.qpush_back(self.table, json.dumps(data))
         else:
-            self.ssdb.qpush_back(self.table, data)
+            length = self.ssdb.qpush_back(self.table, data)
+        if length:
+            self.ssdb.hincr('counter_' + self.table, time.strftime('%Y-%m-%d', time.localtime(float(time.time()))))
+        return length
 
 
     # 队首取出一条数据
@@ -33,3 +38,8 @@ class myssdb(object):
         if data:
             return data[0]
         return data
+
+
+if __name__ == '__main__':
+    ssdb = myssdb('test_queue', host='web12', port=54321)
+    print ssdb.put({'name': 'lvv'})
